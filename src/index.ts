@@ -8,6 +8,9 @@ import { connectDb } from "./config/db.js";
 // Router
 import AuthRouter from "./modules/login/router/auth_router.js";
 import UserRouter from "./modules/users/router/user_router.js";
+import PatientRouter from "./modules/HealthWorker/patient/router/patient_router.js";
+import ScreeningRouter from "./modules/HealthWorker/screening/router/screening_router.js";
+import DoctorRouter from "./modules/Doctor/router/doctor_router.js";
 import UploadRouter from "./service/upload-service/router/upload_router.js";
  
 
@@ -85,6 +88,9 @@ app.get("/", (req, res) => {
 
 app.use("/auth", AuthRouter);
 app.use("/users", UserRouter);
+app.use("/patients", PatientRouter);
+app.use("/screenings", ScreeningRouter);
+app.use("/doctor", DoctorRouter);
 
 // ======================================================
 // Start Server

@@ -43,7 +43,10 @@ export function authenticationMiddleware(
     }
 
     const payload = decoded as JwtPayload & Partial<AuthenticatedUser>;
-    const validRole = Object.values(UserRole).includes(payload.role as UserRole);
+    const role = (payload.role as string) === "DOCTER"
+      ? UserRole.DOCTOR
+      : payload.role as UserRole;
+    const validRole = Object.values(UserRole).includes(role);
 
     if (
       !payload.user_generated_id ||
@@ -56,7 +59,7 @@ export function authenticationMiddleware(
     req.authenticatedUser = {
       user_generated_id: payload.user_generated_id,
       user_id: payload.user_id,
-      role: payload.role as UserRole,
+      role,
     };
 
     return next();

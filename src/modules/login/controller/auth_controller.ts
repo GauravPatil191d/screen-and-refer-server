@@ -4,6 +4,21 @@ import AuthEntity from "../models/auth_model.js";
 import AuthService from "../service/auth_service.js";
 
 export default class AuthController {
+  static async CurrentUserController(req: Request, res: Response) {
+    try {
+      const user = await AuthService.GetCurrentUser(
+        req.authenticatedUser!.user_generated_id,
+      );
+
+      return res.status(200).json({ success: true, data: user });
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: error instanceof Error ? error.message : "Authentication required",
+      });
+    }
+  }
+
   static async LoginController(req: Request, res: Response) {
     try {
       const { user_id, password } = req.body;
