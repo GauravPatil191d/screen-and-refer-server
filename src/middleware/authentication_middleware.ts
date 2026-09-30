@@ -23,9 +23,11 @@ export function authenticationMiddleware(
   next: NextFunction,
 ) {
   const authorization = req.headers.authorization;
-  const token = authorization?.startsWith("Bearer ")
+  const headerToken = authorization?.startsWith("Bearer ")
     ? authorization.slice(7)
     : undefined;
+  const cookieToken = req.cookies?.access_token;
+  const token = headerToken ?? cookieToken;
   const secret = process.env.JWT_SECRET;
 
   if (!token || !secret) {

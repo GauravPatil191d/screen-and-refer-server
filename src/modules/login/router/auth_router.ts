@@ -10,5 +10,6 @@ AuthRouter.post(
   "/login",
   AuthController.LoginController,
 );
+AuthRouter.post("/logout", AuthController.LogoutController);
 
 export default AuthRouter;
