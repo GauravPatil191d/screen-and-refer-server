@@ -2,34 +2,34 @@
 
 ## 1. Why I picked this stack
 
-I chose Next.js with TypeScript for the frontend because it provides a structured React-based application with strong typing and straightforward routing. For the backend, I used Node.js, Express and TypeScript to keep the API layer simple and modular. MongoDB was chosen for flexible patient and screening data, especially for configuration-driven screening responses. Vercel and MongoDB Atlas also make the application simple to deploy and maintain within the scope of this project.
+I used Next.js and TypeScript for the frontend because I am comfortable with React and wanted proper typing and simple routing. For the backend, I used Node.js, Express and TypeScript because it keeps the API structure simple and easy to maintain. I used MongoDB because the screening data is flexible and the questions are configuration-based. I used Vercel for deployment because it was quick to set up and works well for this project.
 
 ## 2. Handling the required edge cases
 
 ### DOB corrected after screening
-The patient's age and relevant demographic information are stored as a snapshot when the screening starts. Updating the patient's DOB later does not change the historical screening data.
+When a screening starts, I store the patient's age and other required details as a snapshot. So if the patient's DOB is changed later, the old screening still keeps the original age.
 
 ### Connection drops or page refresh during screening
-Screening progress is saved as a draft and the frontend also retains unsent progress locally, allowing the user to continue after a refresh or temporary connection issue.
+The screening is saved as a draft, and the frontend also keeps the current unsent answers locally. So refreshing the page or temporarily losing the connection does not immediately lose the work.
 
 ### Same person registered twice
-Phone numbers are normalized before storage and duplicate checking. Formats such as `+91XXXXXXXXXX`, `0XXXXXXXXXX` and `XXXXXXXXXX` are treated as the same Indian mobile number. Active patient records are protected from duplicate registration.
+I normalize the phone number before checking for duplicates. For example, `+91XXXXXXXXXX`, `0XXXXXXXXXX` and `XXXXXXXXXX` are treated as the same number. This helps avoid duplicate records when the same person is entered again with a different name spelling.
 
 ### Devanagari names
-Patient names are stored as Unicode, so names written in Devanagari can be entered, stored, searched and displayed without modification.
+Names are stored as Unicode, so names such as `अभिषेक मिश्रा` can be entered, stored, searched and displayed normally.
 
 ### Health Worker calls Doctor-only API
-Role authorization is enforced on the backend. Doctor-only routes check the authenticated user's role and reject unauthorized Health Worker requests with a 403 response.
+The backend checks the user's role before allowing access to Doctor APIs. A Health Worker trying to call those APIs directly gets a 403 response.
 
 ### Follow-up question disappears
-When a previous answer changes and makes a follow-up question no longer applicable, the previous answer is retained as inactive but excluded from the submitted screening and risk calculation.
+If an earlier answer changes and a follow-up question is no longer applicable, the previous answer is marked as inactive. It is not used in the final screening score.
 
 ## 3. One AI coding issue I caught
 
-An AI coding tool initially suggested using Gemini structured JSON output with an `application/json` MIME-type configuration for the selected Gemini model. The deployed API rejected that request. I removed the incompatible configuration, changed the integration to a simpler text-based JSON response, added validation for the generated output, and added retry/fallback handling so an AI failure does not affect the main screening workflow.
+While integrating Gemini, an AI coding tool suggested using a structured JSON response with an `application/json` setting. Gemini rejected that request with a 400 error. I removed that part and changed it to a simpler text response that I parse and validate myself. I also added retry and fallback handling so the application still works when Gemini is unavailable.
 
 ## 4. New requirement: SMS alert for High risk
 
-I would add an SMS notification step after the final risk is determined to be High. The backend would use an SMS provider such as Twilio or another suitable provider and send the message to the patient's already-normalized phone number. The notification should be triggered from the backend rather than the frontend, and delivery failures should be handled independently so an SMS problem does not affect screening or doctor review.
+I would add the SMS part in the backend after the final risk is decided as High. I would use an SMS provider and send the alert to the patient's normalized phone number.
 
-I would leave the existing patient, screening, risk calculation, doctor review, audit, authentication and AI workflows unchanged. The SMS functionality would be added as a separate notification layer triggered by the final High-risk decision.
+I would keep the existing patient, screening, risk calculation, doctor review and audit logic as it is. SMS would be added as a separate notification step so that even if the SMS service fails, the screening and doctor review should continue normally.
