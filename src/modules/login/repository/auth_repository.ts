@@ -13,8 +13,14 @@ export default class AuthRepository {
         projection: {
           _id: 0,
           user_generated_id: 1,
+          user_id: 1,
           name: 1,
+          email: 1,
           role: 1,
+          isActive: 1,
+          lastLoginAt: 1,
+          createdAt: 1,
+          updatedAt: 1,
         },
       },
     );

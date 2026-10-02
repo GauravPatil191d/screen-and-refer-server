@@ -21,8 +21,14 @@ export default class AuthService {
 
     return {
       id: user.user_generated_id,
+      user_id: user.user_id,
       name: user.name,
+      email: user.email,
       role,
+      isActive: user.isActive,
+      lastLoginAt: user.lastLoginAt ?? null,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   }
 
