@@ -1,8 +1,8 @@
 import { MongoClient } from "mongodb";
-// import dns from "node:dns";
+import dns from "node:dns";
 
 // // Force Node.js to use public DNS servers
-// dns.setServers(["8.8.8.8", "1.1.1.1"]);
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
 const mongoURI = process.env.MONGO_URI;
 

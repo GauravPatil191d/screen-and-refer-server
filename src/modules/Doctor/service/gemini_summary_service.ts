@@ -33,7 +33,7 @@ type GeminiSummaryResult = {
 
 export default class GeminiSummaryService {
   private static readonly MAX_ATTEMPTS = 3;
-  private static readonly TIMEOUT_MS = 15_000;
+  private static readonly TIMEOUT_MS = 30_000;
 
   private static isRetryableStatus(status: number) {
     return [429, 500, 502, 503, 504].includes(status);
@@ -45,8 +45,9 @@ export default class GeminiSummaryService {
 
   static async Generate(input: SummaryInput): Promise<AiSummaryData> {
     const apiKey = process.env.GEMINI_API_KEY;
+
     const model =
-      process.env.GEMINI_MODEL || "gemini-3.8-flash";
+      process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
     if (!apiKey) {
       throw new Error("GEMINI_API_KEY is not configured");
@@ -56,6 +57,7 @@ export default class GeminiSummaryService {
 You are summarizing a health screening for a doctor.
 
 IMPORTANT RULES:
+
 1. Do not diagnose the patient.
 2. Do not recommend treatment.
 3. Do not invent symptoms, measurements, history, or conclusions.
@@ -66,12 +68,13 @@ IMPORTANT RULES:
 8. The system risk is provided as data. Do not change it.
 9. Return ONLY valid JSON.
 10. Do not use markdown.
-11. Return exactly these two keys:
+11. Return exactly two keys:
     "english"
     "marathi"
-12. The Marathi summary MUST be written in Devanagari script.
+12. The Marathi summary MUST contain Devanagari text.
 
-Required JSON format:
+Return exactly:
+
 {
   "english": "short factual summary",
   "marathi": "मराठीमध्ये संक्षिप्त तथ्यात्मक सारांश"
@@ -95,12 +98,10 @@ ${JSON.stringify(input)}
       try {
         response = await fetch(url, {
           method: "POST",
-
           headers: {
             "Content-Type": "application/json",
             "x-goog-api-key": apiKey,
           },
-
           body: JSON.stringify({
             contents: [
               {
@@ -111,14 +112,12 @@ ${JSON.stringify(input)}
                 ],
               },
             ],
-
             generationConfig: {
               thinkingConfig: {
-                thinkingLevel: "low",
+                thinkingLevel: "minimal",
               },
             },
           }),
-
           signal: AbortSignal.timeout(
             GeminiSummaryService.TIMEOUT_MS,
           ),
@@ -140,11 +139,9 @@ ${JSON.stringify(input)}
         );
 
         await GeminiSummaryService.sleep(delay);
-
         continue;
       }
 
-      // Success
       if (response.ok) {
         break;
       }
@@ -158,7 +155,6 @@ ${JSON.stringify(input)}
         body: errorBody,
       });
 
-      // Non-retryable error
       if (
         !GeminiSummaryService.isRetryableStatus(
           response.status,
@@ -169,7 +165,6 @@ ${JSON.stringify(input)}
         );
       }
 
-      // Last retry exhausted
       if (attempt === GeminiSummaryService.MAX_ATTEMPTS) {
         throw new Error(
           `Gemini API request failed with status ${response.status}`,
@@ -193,7 +188,10 @@ ${JSON.stringify(input)}
     const result = (await response.json()) as GeminiResponse;
 
     if (result.error) {
-      console.error("Gemini returned an error:", result.error);
+      console.error(
+        "Gemini returned an error:",
+        result.error,
+      );
 
       throw new Error(
         result.error.message ||
@@ -209,12 +207,10 @@ ${JSON.stringify(input)}
       );
     }
 
-    if (candidate.finishReason) {
-      console.log(
-        "Gemini finish reason:",
-        candidate.finishReason,
-      );
-    }
+    console.log(
+      "Gemini finish reason:",
+      candidate.finishReason,
+    );
 
     const content = candidate.content?.parts
       ?.map((part) => part.text ?? "")
@@ -227,7 +223,10 @@ ${JSON.stringify(input)}
       );
     }
 
-    console.log("Gemini raw response:", content);
+    console.log(
+      "Gemini raw response:",
+      content,
+    );
 
     const cleanedContent = content
       .replace(/^```json\s*/i, "")
