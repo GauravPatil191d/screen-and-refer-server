@@ -10,11 +10,17 @@ export default class AuthController {
         req.authenticatedUser!.user_generated_id,
       );
 
-      return res.status(200).json({ success: true, data: user });
+      return res.status(200).json({
+        success: true,
+        data: user,
+      });
     } catch (error) {
       return res.status(401).json({
         success: false,
-        message: error instanceof Error ? error.message : "Authentication required",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Authentication required",
       });
     }
   }
@@ -29,13 +35,13 @@ export default class AuthController {
 
       const authData = new AuthEntity(user_id, password);
 
-      const result =
-        await AuthService.LoginService(authData);
+      const result = await AuthService.LoginService(authData);
 
       res.cookie("access_token", result.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite:
+          process.env.NODE_ENV === "production" ? "none" : "lax",
         maxAge: 24 * 60 * 60 * 1000,
         path: "/",
       });
@@ -59,7 +65,8 @@ export default class AuthController {
     res.clearCookie("access_token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite:
+        process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/",
     });
 
